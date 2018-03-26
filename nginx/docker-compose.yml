@@ -1,0 +1,39 @@
+version: "3"
+services:
+
+    logspout:
+      image: gliderlabs/logspout:latest
+      command: 'syslog://logs4.papertrailapp.com:17488'
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+
+    nginx:
+      image: nginx:latest
+      links:
+        - wp
+      restart: always
+
+    wp:
+      image: wordpress:4.9.3
+      ports:
+        - "8080:80"
+      depends_on:
+        - db
+      environment:
+        - WORDPRESS_DB_HOST=db:3306
+        - WORDPRESS_DB_PASSWORD=pass
+      restart: always
+
+    db:
+      image: mysql
+      environment:
+        - MYSQL_ROOT_PASSWORD=pass
+
+    datadog:
+      build: datadog
+      environment:
+        - API_KEY=5812938224104d7e4edd0a48640f24f5
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+        - /proc/mounts:/host/proc/mounts:ro
+        - /sys/fs/cgroup:/host/sys/fs/cgroup:ro
